@@ -1,5 +1,6 @@
 import express, { Request, Response } from 'express';
 import subjectsRouter from './routes/subjects';
+import departmentsRouter from './routes/departments';
 import cors from 'cors';
 
 const app = express();
@@ -15,6 +16,7 @@ app.use(cors({
 app.use(express.json());
 
 app.use('/api/subjects',subjectsRouter);
+app.use('/api/departments',departmentsRouter);
 
 // Root GET route
 app.get('/', (req: Request, res: Response) => {
