@@ -1,6 +1,7 @@
 import express, { Request, Response } from 'express';
 import subjectsRouter from './routes/subjects';
 import departmentsRouter from './routes/departments';
+import authRouter from './routes/auth';
 import cors from 'cors';
 
 const app = express();
@@ -15,6 +16,7 @@ app.use(cors({
 // JSON middleware
 app.use(express.json());
 
+app.use('/api/auth',authRouter);
 app.use('/api/subjects',subjectsRouter);
 app.use('/api/departments',departmentsRouter);
 

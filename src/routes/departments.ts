@@ -2,6 +2,7 @@ import { desc, eq, ilike, or } from 'drizzle-orm';
 import express from 'express';
 import { departments } from '../db/schema';
 import { db } from '../db';
+import { isUniqueViolation, isForeignKeyViolation } from '../lib/db-errors';
 
 const router = express.Router();
 
@@ -84,7 +85,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
 
         res.status(201).json({ data: created });
     } catch (e: any) {
-        if (e?.code === '23505') {
+        if (isUniqueViolation(e)) {
             return res.status(409).json({ error: 'a department with this code already exists' });
         }
         console.error(`POST /departments error ${e}`);
@@ -122,7 +123,7 @@ router.put('/:id', async (req: express.Request, res: express.Response) => {
 
         res.status(200).json({ data: updated });
     } catch (e: any) {
-        if (e?.code === '23505') {
+        if (isUniqueViolation(e)) {
             return res.status(409).json({ error: 'a department with this code already exists' });
         }
         console.error(`PUT /departments/:id error ${e}`);
@@ -149,7 +150,7 @@ router.delete('/:id', async (req: express.Request, res: express.Response) => {
 
         res.status(200).json({ data: deleted });
     } catch (e: any) {
-        if (e?.code === '23503') {
+        if (isForeignKeyViolation(e)) {
             return res
                 .status(409)
                 .json({ error: 'cannot delete a department that still has subjects' });

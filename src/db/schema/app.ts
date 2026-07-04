@@ -1,10 +1,27 @@
 import { relations } from 'drizzle-orm';
-import { pgTable, integer, varchar, timestamp } from 'drizzle-orm/pg-core';
+import { pgTable, integer, varchar, timestamp, pgEnum } from 'drizzle-orm/pg-core';
 
 const timestamps = {
     createdAt : timestamp('created_at').defaultNow().notNull(),
     updatedAt : timestamp('updated_at').defaultNow().$onUpdate(() => new Date()).notNull()
 }
+
+export const userRole = pgEnum('user_role', ['student', 'teacher', 'admin']);
+
+export const users = pgTable('users', {
+    id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+    name: varchar('name', { length: 255 }).notNull(),
+    email: varchar('email', { length: 255 }).notNull().unique(),
+    password: varchar('password', { length: 255 }).notNull(),
+    role: userRole('role').notNull().default('student'),
+    department: varchar('department', { length: 255 }),
+    image: varchar('image', { length: 500 }),
+    imageCldPubId: varchar('image_cld_pub_id', { length: 255 }),
+    ...timestamps
+})
+
+export type User = typeof users.$inferSelect;
+export type NewUser = typeof users.$inferInsert;
 
 export const departments = pgTable ('departments',{
     id: integer('id').primaryKey().generatedAlwaysAsIdentity(),

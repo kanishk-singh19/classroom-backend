@@ -2,6 +2,7 @@ import { desc,and, eq, getTableColumns, ilike, or, sql } from 'drizzle-orm';
 import express from 'express';
 import { departments, subjects } from '../db/schema';
 import { db } from '../db';
+import { isUniqueViolation } from '../lib/db-errors';
 
 const router = express.Router();
 
@@ -137,7 +138,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
 
         res.status(201).json({ data: created });
     } catch (e: any) {
-        if (e?.code === '23505') {
+        if (isUniqueViolation(e)) {
             return res.status(409).json({ error: 'a subject with this code already exists' });
         }
         console.error(`POST /subjects error ${e}`);
@@ -183,7 +184,7 @@ router.put('/:id', async (req: express.Request, res: express.Response) => {
 
         res.status(200).json({ data: updated });
     } catch (e: any) {
-        if (e?.code === '23505') {
+        if (isUniqueViolation(e)) {
             return res.status(409).json({ error: 'a subject with this code already exists' });
         }
         console.error(`PUT /subjects/:id error ${e}`);
