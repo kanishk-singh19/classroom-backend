@@ -1,6 +1,7 @@
 import 'dotenv/config';
 import { db } from './index';
-import { departments, subjects } from './schema';
+import { departments, subjects, users } from './schema';
+import { hashPassword } from '../lib/auth';
 
 // A small, deterministic set of seed data so the app has something to show.
 const DEPARTMENT_SEED = [
@@ -18,6 +19,14 @@ const SUBJECT_SEED = [
     { code: 'PHY101', name: 'Mechanics', department: 'Physics', description: 'Newtonian mechanics and motion.' },
     { code: 'ENG101', name: 'Academic Writing', department: 'English', description: 'Essay structure and academic style.' },
 ];
+
+// Default accounts (password is the same for all — dev only).
+const USER_SEED = [
+    { name: 'Alice Admin', email: 'admin@classroom.test', role: 'admin' as const, department: 'Computer Science' },
+    { name: 'Tom Teacher', email: 'teacher@classroom.test', role: 'teacher' as const, department: 'Mathematics' },
+    { name: 'Sam Student', email: 'student@classroom.test', role: 'student' as const, department: 'Physics' },
+];
+const SEED_PASSWORD = 'password123';
 
 async function seed() {
     console.log('Seeding departments...');
@@ -46,6 +55,16 @@ async function seed() {
         .onConflictDoNothing({ target: subjects.code })
         .returning();
     console.log(`  inserted ${insertedSubjects.length} subjects`);
+
+    console.log('Seeding users...');
+    const hashed = await hashPassword(SEED_PASSWORD);
+    const userRows = USER_SEED.map((u) => ({ ...u, password: hashed }));
+    const insertedUsers = await db
+        .insert(users)
+        .values(userRows)
+        .onConflictDoNothing({ target: users.email })
+        .returning();
+    console.log(`  inserted ${insertedUsers.length} users (password: ${SEED_PASSWORD})`);
 
     console.log('Seed complete.');
 }
