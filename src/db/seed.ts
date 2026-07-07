@@ -1,7 +1,8 @@
 import 'dotenv/config';
 import { db } from './index';
-import { departments, subjects, users } from './schema';
+import { departments, subjects, users, classes } from './schema';
 import { hashPassword } from '../lib/auth';
+import { generateInviteCode } from '../lib/invite-code';
 
 // A small, deterministic set of seed data so the app has something to show.
 const DEPARTMENT_SEED = [
@@ -70,6 +71,38 @@ async function seed() {
         .onConflictDoNothing({ target: users.email })
         .returning();
     console.log(`  inserted ${insertedUsers.length} users (password: ${SEED_PASSWORD})`);
+
+    // Look up ids to link classes to a seeded subject + teacher.
+    const allSubjects = await db.select().from(subjects);
+    const subjectIdByCode = new Map(allSubjects.map((s) => [s.code, s.id]));
+    const allUsers = await db.select().from(users);
+    const teacherIdByEmail = new Map(allUsers.map((u) => [u.email, u.id]));
+
+    const CLASS_SEED = [
+        { name: 'Intro to Programming - A', subjectCode: 'CS101', teacherEmail: 'priya@classroom.test', capacity: 40, description: 'Morning section.' },
+        { name: 'Data Structures - B', subjectCode: 'CS201', teacherEmail: 'priya@classroom.test', capacity: 35, description: 'Afternoon section.' },
+        { name: 'Mechanics - A', subjectCode: 'PHY101', teacherEmail: 'david@classroom.test', capacity: 30, description: 'Lab included.' },
+    ];
+
+    // Only insert classes whose name isn't already present (keeps re-runs safe).
+    const existingNames = new Set((await db.select({ name: classes.name }).from(classes)).map((c) => c.name));
+    const classRows = CLASS_SEED
+        .filter((c) => !existingNames.has(c.name))
+        .map((c) => ({
+            name: c.name,
+            description: c.description,
+            subjectId: subjectIdByCode.get(c.subjectCode)!,
+            teacherId: teacherIdByEmail.get(c.teacherEmail)!,
+            capacity: c.capacity,
+            inviteCode: generateInviteCode(),
+        }))
+        .filter((c) => c.subjectId !== undefined && c.teacherId !== undefined);
+
+    console.log('Seeding classes...');
+    const insertedClasses = classRows.length
+        ? await db.insert(classes).values(classRows).returning()
+        : [];
+    console.log(`  inserted ${insertedClasses.length} classes`);
 
     console.log('Seed complete.');
 }
