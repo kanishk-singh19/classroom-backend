@@ -25,6 +25,11 @@ const USER_SEED = [
     { name: 'Alice Admin', email: 'admin@classroom.test', role: 'admin' as const, department: 'Computer Science' },
     { name: 'Tom Teacher', email: 'teacher@classroom.test', role: 'teacher' as const, department: 'Mathematics' },
     { name: 'Sam Student', email: 'student@classroom.test', role: 'student' as const, department: 'Physics' },
+    { name: 'Priya Sharma', email: 'priya@classroom.test', role: 'teacher' as const, department: 'Computer Science' },
+    { name: 'David Chen', email: 'david@classroom.test', role: 'teacher' as const, department: 'Physics' },
+    { name: 'Maria Garcia', email: 'maria@classroom.test', role: 'teacher' as const, department: 'English' },
+    { name: 'John Doe', email: 'john@classroom.test', role: 'student' as const, department: 'Computer Science' },
+    { name: 'Emma Wilson', email: 'emma@classroom.test', role: 'student' as const, department: 'Mathematics' },
 ];
 const SEED_PASSWORD = 'password123';
 
