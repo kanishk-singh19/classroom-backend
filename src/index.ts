@@ -2,6 +2,7 @@ import express, { Request, Response } from 'express';
 import subjectsRouter from './routes/subjects';
 import departmentsRouter from './routes/departments';
 import authRouter from './routes/auth';
+import usersRouter from './routes/users';
 import cors from 'cors';
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(cors({
 app.use(express.json());
 
 app.use('/api/auth',authRouter);
+app.use('/api/users',usersRouter);
 app.use('/api/subjects',subjectsRouter);
 app.use('/api/departments',departmentsRouter);
 
