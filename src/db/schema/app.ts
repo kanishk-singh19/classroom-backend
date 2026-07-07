@@ -40,12 +40,35 @@ export const subjects = pgTable ('subjects',{
     ...timestamps
 })
 
+export const classStatus = pgEnum('class_status', ['active', 'inactive']);
+
+export const classes = pgTable('classes', {
+    id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+    name: varchar('name', { length: 255 }).notNull(),
+    description: varchar('description', { length: 1000 }),
+    subjectId: integer('subject_id').notNull().references(() => subjects.id, { onDelete: 'restrict' }),
+    teacherId: integer('teacher_id').notNull().references(() => users.id, { onDelete: 'restrict' }),
+    capacity: integer('capacity').notNull().default(30),
+    status: classStatus('status').notNull().default('active'),
+    bannerUrl: varchar('banner_url', { length: 500 }),
+    bannerCldPubId: varchar('banner_cld_pub_id', { length: 255 }),
+    inviteCode: varchar('invite_code', { length: 20 }).notNull().unique(),
+    ...timestamps
+})
+
 export const departmentRelations = relations(departments, ({many}) => ({subjects : many(subjects)}))
 
-export const subjectRelations = relations(subjects, ({one,many}) => ({departments : one(departments, {
-    fields:[subjects.departmentId],
-    references: [departments.id]
-    })
+export const subjectRelations = relations(subjects, ({one,many}) => ({
+    departments : one(departments, {
+        fields:[subjects.departmentId],
+        references: [departments.id]
+    }),
+    classes: many(classes)
+}));
+
+export const classRelations = relations(classes, ({ one }) => ({
+    subject: one(subjects, { fields: [classes.subjectId], references: [subjects.id] }),
+    teacher: one(users, { fields: [classes.teacherId], references: [users.id] }),
 }));
 
 export type Department = typeof departments.$inferSelect;
@@ -53,3 +76,6 @@ export type NewDepartment = typeof departments.$inferInsert;
 
 export type Subject = typeof subjects.$inferSelect;
 export type NewSubject = typeof subjects.$inferInsert;
+
+export type Class = typeof classes.$inferSelect;
+export type NewClass = typeof classes.$inferInsert;

@@ -15,6 +15,13 @@
       "when": 1783133761651,
       "tag": "0001_talented_terror",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1783397337637,
+      "tag": "0002_spooky_brother_voodoo",
+      "breakpoints": true
     }
   ]
 }
