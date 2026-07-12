@@ -33,6 +33,11 @@ app.get('/', (req: Request, res: Response) => {
   res.json({ message: 'Welcome to the Classroom API' });
 });
 
+// Health check for uptime monitoring / deploys
+app.get('/health', (req: Request, res: Response) => {
+  res.json({ status: 'ok' });
+});
+
 // Start server and log URL
 const server = app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
