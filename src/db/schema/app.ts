@@ -1,5 +1,5 @@
 import { relations } from 'drizzle-orm';
-import { pgTable, integer, varchar, timestamp, pgEnum } from 'drizzle-orm/pg-core';
+import { pgTable, integer, varchar, timestamp, pgEnum, unique } from 'drizzle-orm/pg-core';
 
 const timestamps = {
     createdAt : timestamp('created_at').defaultNow().notNull(),
@@ -66,10 +66,29 @@ export const subjectRelations = relations(subjects, ({one,many}) => ({
     classes: many(classes)
 }));
 
-export const classRelations = relations(classes, ({ one }) => ({
+// A student's membership in a class. A student can only join a class once.
+export const enrollments = pgTable('enrollments', {
+    id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+    classId: integer('class_id').notNull().references(() => classes.id, { onDelete: 'cascade' }),
+    studentId: integer('student_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    ...timestamps
+}, (t) => [
+    unique('unique_enrollment').on(t.classId, t.studentId),
+]);
+
+export const classRelations = relations(classes, ({ one, many }) => ({
     subject: one(subjects, { fields: [classes.subjectId], references: [subjects.id] }),
     teacher: one(users, { fields: [classes.teacherId], references: [users.id] }),
+    enrollments: many(enrollments),
 }));
+
+export const enrollmentRelations = relations(enrollments, ({ one }) => ({
+    class: one(classes, { fields: [enrollments.classId], references: [classes.id] }),
+    student: one(users, { fields: [enrollments.studentId], references: [users.id] }),
+}));
+
+export type Enrollment = typeof enrollments.$inferSelect;
+export type NewEnrollment = typeof enrollments.$inferInsert;
 
 export type Department = typeof departments.$inferSelect;
 export type NewDepartment = typeof departments.$inferInsert;

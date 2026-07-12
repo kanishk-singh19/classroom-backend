@@ -4,6 +4,7 @@ import departmentsRouter from './routes/departments';
 import authRouter from './routes/auth';
 import usersRouter from './routes/users';
 import classesRouter from './routes/classes';
+import enrollmentsRouter from './routes/enrollments';
 import cors from 'cors';
 
 const app = express();
@@ -21,6 +22,7 @@ app.use(express.json());
 app.use('/api/auth',authRouter);
 app.use('/api/users',usersRouter);
 app.use('/api/classes',classesRouter);
+app.use('/api/enrollments',enrollmentsRouter);
 app.use('/api/subjects',subjectsRouter);
 app.use('/api/departments',departmentsRouter);
 
