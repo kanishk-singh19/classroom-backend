@@ -30,3 +30,16 @@ export function requireAuth(
         return res.status(401).json({ error: 'invalid or expired token' });
     }
 }
+
+// Restricts a route to the given roles. Assumes requireAuth ran first.
+export function requireRole(...roles: string[]) {
+    return (req: express.Request, res: express.Response, next: express.NextFunction) => {
+        if (!req.auth) {
+            return res.status(401).json({ error: 'authentication required' });
+        }
+        if (!roles.includes(req.auth.role)) {
+            return res.status(403).json({ error: 'you do not have permission to do that' });
+        }
+        next();
+    };
+}

@@ -2,7 +2,10 @@ import { desc, and, eq, getTableColumns, ilike, sql } from 'drizzle-orm';
 import express from 'express';
 import { classes, subjects, users } from '../db/schema';
 import { db } from '../db';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requireRole } from '../middleware/auth';
+
+// Only staff can create/modify classes.
+const canManage = [requireAuth, requireRole('admin', 'teacher')];
 import { isUniqueViolation, isForeignKeyViolation } from '../lib/db-errors';
 import { generateInviteCode } from '../lib/invite-code';
 
@@ -96,7 +99,7 @@ router.get('/:id', async (req: express.Request, res: express.Response) => {
 });
 
 // create a class (generates a unique invite code)
-router.post('/', requireAuth, async (req: express.Request, res: express.Response) => {
+router.post('/', ...canManage, async (req: express.Request, res: express.Response) => {
     try {
         const {
             name,
@@ -145,7 +148,7 @@ router.post('/', requireAuth, async (req: express.Request, res: express.Response
 });
 
 // update a class
-router.put('/:id', requireAuth, async (req: express.Request, res: express.Response) => {
+router.put('/:id', ...canManage, async (req: express.Request, res: express.Response) => {
     try {
         const id = Number(req.params.id);
         if (!Number.isFinite(id)) {
@@ -188,7 +191,7 @@ router.put('/:id', requireAuth, async (req: express.Request, res: express.Respon
 });
 
 // delete a class
-router.delete('/:id', requireAuth, async (req: express.Request, res: express.Response) => {
+router.delete('/:id', ...canManage, async (req: express.Request, res: express.Response) => {
     try {
         const id = Number(req.params.id);
         if (!Number.isFinite(id)) {

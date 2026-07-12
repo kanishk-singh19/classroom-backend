@@ -2,7 +2,10 @@ import { and, desc, eq, sql } from 'drizzle-orm';
 import express from 'express';
 import { classes, enrollments, users } from '../db/schema';
 import { db } from '../db';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requireRole } from '../middleware/auth';
+
+// Only staff manage enrollments.
+const canManage = [requireAuth, requireRole('admin', 'teacher')];
 import { isUniqueViolation, isForeignKeyViolation } from '../lib/db-errors';
 
 const router = express.Router();
@@ -65,7 +68,7 @@ router.get('/', async (req: express.Request, res: express.Response) => {
 });
 
 // enroll a student into a class (respects the class capacity)
-router.post('/', requireAuth, async (req: express.Request, res: express.Response) => {
+router.post('/', ...canManage, async (req: express.Request, res: express.Response) => {
     try {
         const { classId, studentId } = req.body ?? {};
         if (!classId || !studentId) {
@@ -109,7 +112,7 @@ router.post('/', requireAuth, async (req: express.Request, res: express.Response
 });
 
 // remove an enrollment (unenroll)
-router.delete('/:id', requireAuth, async (req: express.Request, res: express.Response) => {
+router.delete('/:id', ...canManage, async (req: express.Request, res: express.Response) => {
     try {
         const id = Number(req.params.id);
         if (!Number.isFinite(id)) {

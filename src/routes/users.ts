@@ -3,7 +3,10 @@ import express from 'express';
 import { users } from '../db/schema';
 import { db } from '../db';
 import { hashPassword } from '../lib/auth';
-import { requireAuth } from '../middleware/auth';
+import { requireAuth, requireRole } from '../middleware/auth';
+
+// Only admins manage user accounts.
+const adminOnly = [requireAuth, requireRole('admin')];
 import { isUniqueViolation } from '../lib/db-errors';
 
 const router = express.Router();
@@ -98,7 +101,7 @@ router.get('/:id', async (req: express.Request, res: express.Response) => {
 
 // create a user (admin adds faculty/students). Password is optional here — a
 // default temp password is used when the admin doesn't supply one.
-router.post('/', requireAuth, async (req: express.Request, res: express.Response) => {
+router.post('/', ...adminOnly, async (req: express.Request, res: express.Response) => {
     try {
         const { name, email, role, department, image, imageCldPubId, password } = req.body ?? {};
 
@@ -133,7 +136,7 @@ router.post('/', requireAuth, async (req: express.Request, res: express.Response
 });
 
 // update a user
-router.put('/:id', requireAuth, async (req: express.Request, res: express.Response) => {
+router.put('/:id', ...adminOnly, async (req: express.Request, res: express.Response) => {
     try {
         const id = Number(req.params.id);
         if (!Number.isFinite(id)) {
@@ -177,7 +180,7 @@ router.put('/:id', requireAuth, async (req: express.Request, res: express.Respon
 });
 
 // delete a user
-router.delete('/:id', requireAuth, async (req: express.Request, res: express.Response) => {
+router.delete('/:id', ...adminOnly, async (req: express.Request, res: express.Response) => {
     try {
         const id = Number(req.params.id);
         if (!Number.isFinite(id)) {

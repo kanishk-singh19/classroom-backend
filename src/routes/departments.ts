@@ -3,6 +3,10 @@ import express from 'express';
 import { departments } from '../db/schema';
 import { db } from '../db';
 import { isUniqueViolation, isForeignKeyViolation } from '../lib/db-errors';
+import { requireAuth, requireRole } from '../middleware/auth';
+
+// Only staff can modify catalog data.
+const canManage = [requireAuth, requireRole('admin', 'teacher')];
 
 const router = express.Router();
 
@@ -70,7 +74,7 @@ router.get('/:id', async (req: express.Request, res: express.Response) => {
 });
 
 // create a department
-router.post('/', async (req: express.Request, res: express.Response) => {
+router.post('/', ...canManage, async (req: express.Request, res: express.Response) => {
     try {
         const { code, name, description } = req.body ?? {};
 
@@ -94,7 +98,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
 });
 
 // update a department
-router.put('/:id', async (req: express.Request, res: express.Response) => {
+router.put('/:id', ...canManage, async (req: express.Request, res: express.Response) => {
     try {
         const id = Number(req.params.id);
         if (!Number.isFinite(id)) {
@@ -132,7 +136,7 @@ router.put('/:id', async (req: express.Request, res: express.Response) => {
 });
 
 // delete a department (blocked if subjects still reference it)
-router.delete('/:id', async (req: express.Request, res: express.Response) => {
+router.delete('/:id', ...canManage, async (req: express.Request, res: express.Response) => {
     try {
         const id = Number(req.params.id);
         if (!Number.isFinite(id)) {

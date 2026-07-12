@@ -3,6 +3,10 @@ import express from 'express';
 import { departments, subjects } from '../db/schema';
 import { db } from '../db';
 import { isUniqueViolation } from '../lib/db-errors';
+import { requireAuth, requireRole } from '../middleware/auth';
+
+// Only staff can modify catalog data.
+const canManage = [requireAuth, requireRole('admin', 'teacher')];
 
 const router = express.Router();
 
@@ -118,7 +122,7 @@ router.get('/:id', async (req: express.Request, res: express.Response) => {
 });
 
 // create a subject
-router.post('/', async (req: express.Request, res: express.Response) => {
+router.post('/', ...canManage, async (req: express.Request, res: express.Response) => {
     try {
         const { name, code, description } = req.body ?? {};
 
@@ -147,7 +151,7 @@ router.post('/', async (req: express.Request, res: express.Response) => {
 });
 
 // update a subject
-router.put('/:id', async (req: express.Request, res: express.Response) => {
+router.put('/:id', ...canManage, async (req: express.Request, res: express.Response) => {
     try {
         const id = Number(req.params.id);
         if (!Number.isFinite(id)) {
@@ -193,7 +197,7 @@ router.put('/:id', async (req: express.Request, res: express.Response) => {
 });
 
 // delete a subject
-router.delete('/:id', async (req: express.Request, res: express.Response) => {
+router.delete('/:id', ...canManage, async (req: express.Request, res: express.Response) => {
     try {
         const id = Number(req.params.id);
         if (!Number.isFinite(id)) {
