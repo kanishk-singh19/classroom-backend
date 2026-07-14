@@ -90,6 +90,63 @@ export const enrollmentRelations = relations(enrollments, ({ one }) => ({
 export type Enrollment = typeof enrollments.$inferSelect;
 export type NewEnrollment = typeof enrollments.$inferInsert;
 
+// A recurring meeting time for a class (e.g. Monday 09:00-10:00).
+export const schedules = pgTable('schedules', {
+    id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+    classId: integer('class_id').notNull().references(() => classes.id, { onDelete: 'cascade' }),
+    day: varchar('day', { length: 20 }).notNull(),
+    startTime: varchar('start_time', { length: 5 }).notNull(),
+    endTime: varchar('end_time', { length: 5 }).notNull(),
+    ...timestamps
+});
+
+export const scheduleRelations = relations(schedules, ({ one }) => ({
+    class: one(classes, { fields: [schedules.classId], references: [classes.id] }),
+}));
+
+export type Schedule = typeof schedules.$inferSelect;
+export type NewSchedule = typeof schedules.$inferInsert;
+
+// A piece of work set for a class.
+export const assignments = pgTable('assignments', {
+    id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+    classId: integer('class_id').notNull().references(() => classes.id, { onDelete: 'cascade' }),
+    title: varchar('title', { length: 255 }).notNull(),
+    description: varchar('description', { length: 2000 }),
+    dueDate: timestamp('due_date'),
+    maxPoints: integer('max_points').notNull().default(100),
+    ...timestamps
+});
+
+// A student's submission for an assignment, optionally graded.
+export const submissions = pgTable('submissions', {
+    id: integer('id').primaryKey().generatedAlwaysAsIdentity(),
+    assignmentId: integer('assignment_id').notNull().references(() => assignments.id, { onDelete: 'cascade' }),
+    studentId: integer('student_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    content: varchar('content', { length: 2000 }),
+    grade: integer('grade'),
+    feedback: varchar('feedback', { length: 1000 }),
+    ...timestamps
+}, (t) => [
+    unique('unique_submission').on(t.assignmentId, t.studentId),
+]);
+
+export const assignmentRelations = relations(assignments, ({ one, many }) => ({
+    class: one(classes, { fields: [assignments.classId], references: [classes.id] }),
+    submissions: many(submissions),
+}));
+
+export const submissionRelations = relations(submissions, ({ one }) => ({
+    assignment: one(assignments, { fields: [submissions.assignmentId], references: [assignments.id] }),
+    student: one(users, { fields: [submissions.studentId], references: [users.id] }),
+}));
+
+export type Assignment = typeof assignments.$inferSelect;
+export type NewAssignment = typeof assignments.$inferInsert;
+
+export type Submission = typeof submissions.$inferSelect;
+export type NewSubmission = typeof submissions.$inferInsert;
+
 export type Department = typeof departments.$inferSelect;
 export type NewDepartment = typeof departments.$inferInsert;
 
