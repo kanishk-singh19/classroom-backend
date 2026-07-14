@@ -7,6 +7,8 @@ import classesRouter from './routes/classes';
 import enrollmentsRouter from './routes/enrollments';
 import statsRouter from './routes/stats';
 import schedulesRouter from './routes/schedules';
+import assignmentsRouter from './routes/assignments';
+import submissionsRouter from './routes/submissions';
 import cors from 'cors';
 
 const app = express();
@@ -27,6 +29,8 @@ app.use('/api/classes',classesRouter);
 app.use('/api/enrollments',enrollmentsRouter);
 app.use('/api/stats',statsRouter);
 app.use('/api/schedules',schedulesRouter);
+app.use('/api/assignments',assignmentsRouter);
+app.use('/api/submissions',submissionsRouter);
 app.use('/api/subjects',subjectsRouter);
 app.use('/api/departments',departmentsRouter);
 
